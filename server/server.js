@@ -25,7 +25,8 @@ app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 // The port to listen on, read from .env
 const PORT = process.env.PORT;
 
-// Routes will be added here in the next piece — nothing to register yet
+// Load the user routes, registering /api/register, /api/login, and /api/users on this app
+require("./routes/user.routes")(app);
 
 // Start the server
 app.listen(PORT, () => {
