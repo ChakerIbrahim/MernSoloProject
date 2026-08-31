@@ -28,6 +28,8 @@ const PORT = process.env.PORT;
 // Load the user routes, registering /api/register, /api/login, and /api/users on this app
 require("./routes/user.routes")(app);
 
+require("./routes/package.routes")(app);
+
 // Start the server
 app.listen(PORT, () => {
   console.log("server is running");
