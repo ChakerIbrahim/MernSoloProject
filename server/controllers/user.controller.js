@@ -30,7 +30,7 @@ const registerUser = async (req, res) => {
     return res.cookie("jwt", token, { httpOnly: true }).json({ user });
   } catch (error) {
     // If validation fails (e.g. passwords didn't match, email missing), this catches it
-    return res.status(400).json({ error: error.message });
+    return res.status(400).json({ message: error.message });
   }
 };
 
@@ -60,7 +60,7 @@ const loginUser = async (req, res) => {
 
     return res.cookie("jwt", token, { httpOnly: true }).json({ user });
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
   }
 };
 
