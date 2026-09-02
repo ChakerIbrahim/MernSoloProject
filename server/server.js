@@ -1,6 +1,8 @@
 // Load environment variables (PORT, MONGOOSE_URI, SECRET) from .env into process.env
 require("dotenv").config();
 
+const cookieParser = require("cookie-parser");
+
 // Express: the framework we use to build the API and handle HTTP requests
 const express = require("express");
 
@@ -29,6 +31,8 @@ app.use(express.urlencoded({ extended: true }));
 // Allows requests from the React app's dev server, and allows cookies to be sent
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 
+app.use(cookieParser());
+
 // The port to listen on, read from .env
 const PORT = process.env.PORT;
 
@@ -56,8 +60,35 @@ const io = new Server(server, {
 
 // Fires once, automatically, every time a browser successfully connects.
 // "socket" here represents that one specific connected client
+// Import the Message model so we can save chat messages to the database
+const Message = require("./models/message.model");
+
 io.on("connection", (socket) => {
   console.log("a user connected:", socket.id);
+
+  // The frontend calls this once, right when someone opens a specific
+  // conversation, telling this socket to join that inquiry's private room
+  socket.on("join_inquiry", (inquiryId) => {
+    socket.join(inquiryId);
+  });
+
+  // Fired when either side sends a message. "data" is an object containing
+  // everything the Message schema needs: inquiry, sender, text
+  socket.on("send_message", async (data) => {
+    try {
+      const message = await Message.create(data);
+
+      // Populate the sender's name before sending it back out, so the
+      // frontend can display "Sara: hey!" without a separate lookup
+      const populatedMessage = await message.populate("sender", "firstName");
+
+      // io.to(room).emit(...) sends only to sockets that joined this
+      // specific room — not every connected client like io.emit() would
+      io.to(data.inquiry).emit("receive_message", populatedMessage);
+    } catch (error) {
+      console.log("error saving message:", error.message);
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("a user disconnected:", socket.id);

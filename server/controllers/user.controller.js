@@ -81,10 +81,35 @@ const getUsers = async (req, res) => {
   }
 };
 
+// Handles GET /api/me — protected by verifyToken. If we got this far,
+// req.user already has { email, id } decoded from a valid cookie
+const getCurrentUser = async (req, res) => {
+  try {
+      const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// Handles POST /api/logout — clears the cookie so the browser stops
+// sending it, effectively ending the session
+const logoutUser = (req, res) => {
+  res.clearCookie("jwt");
+  return res.json({ message: "Logged out" });
+};
+
 // Export all three functions together as one object, matching his pattern —
 // this is what user.routes.js will import and attach to actual URLs
 module.exports = {
   registerUser,
   loginUser,
   getUsers,
+  getCurrentUser,
+  logoutUser,
 };
