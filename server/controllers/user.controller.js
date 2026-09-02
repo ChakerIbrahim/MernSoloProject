@@ -13,10 +13,16 @@ require("dotenv").config();
 // Handles POST /api/register — creates a new traveler or agency account
 const registerUser = async (req, res) => {
   try {
-    // req.body contains whatever the frontend sent: firstName, email, password,
-    // confirmPassword, role, and (if an agency) agencyName etc.
-    // User.create() runs the schema's pre("validate") and pre("save") hooks
-    // automatically — that's where password matching + hashing happen
+    // Check whether an account with this email already exists before
+    // creating a new one. Without this, two accounts could end up sharing
+    // the same email — and since login looks users up by email, one of
+    // them would become permanently unreachable, silently
+    const existingUser = await User.findOne({ email: req.body.email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "An account with this email already exists" });
+    }
+
     const user = await User.create(req.body);
 
     // Create a signed token containing just enough info to identify this user later
