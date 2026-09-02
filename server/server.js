@@ -38,6 +38,8 @@ require("./routes/user.routes")(app);
 // Load the package routes, registering full CRUD + search on /api/packages
 require("./routes/package.routes")(app);
 
+require("./routes/inquiry.routes")(app);
+
 // Wrap the Express app in a plain HTTP server. Express normally does this
 // invisibly when we call app.listen() directly, but Socket.IO needs access
 // to that raw server object itself, so we create it explicitly here
