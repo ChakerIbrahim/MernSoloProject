@@ -4,21 +4,23 @@ import axios from "axios";
 import { Container, Typography } from "@mui/material";
 import Header from "../components/Header";
 import UserForm from "../components/UserForm";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (e, data) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8000/api/login", data, {
+      const response = await axios.post("http://localhost:8000/api/login", data, {
         withCredentials: true,
       });
+      setUser(response.data.user);
       setError("");
-      // No dashboard exists yet — Browse is a reasonable place to land for now
       navigate("/browse");
     } catch (error) {
       setError(error.response.data.message);

@@ -4,6 +4,7 @@ import axios from "axios";
 import { Container, Typography } from "@mui/material";
 import Header from "../components/Header";
 import UserForm from "../components/UserForm";
+import { useAuth } from "../context/AuthContext";
 
 function Register() {
   const [error, setError] = useState("");
@@ -15,13 +16,15 @@ function Register() {
   const [agencyName, setAgencyName] = useState("");
   const [agencyDescription, setAgencyDescription] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (e, data) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8000/api/register", data, {
+        const response = await axios.post("http://localhost:8000/api/register", data, {
         withCredentials: true,
       });
+      setUser(response.data.user);
       setError("");
       navigate("/browse");
     } catch (error) {

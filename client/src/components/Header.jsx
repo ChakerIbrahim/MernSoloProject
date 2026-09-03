@@ -1,11 +1,19 @@
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Header() {
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
   return (
     <AppBar position="static" color="default" elevation={0}>
       <Toolbar sx={{ justifyContent: "space-between" }}>
-        {/* component={Link} makes this look like MUI text but navigate like a real link */}
         <Typography
           variant="h6"
           component={Link}
@@ -15,13 +23,27 @@ function Header() {
           SafeTravel
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <Button component={Link} to="/browse" color="inherit">
             Browse
           </Button>
-          <Button component={Link} to="/login" color="inherit">
-            Login
-          </Button>
+
+          {/* While the initial /api/me check is still running, show nothing
+              here rather than briefly flashing "Login" incorrectly */}
+          {loading ? null : user ? (
+            <>
+              <Typography variant="body2">
+                Logged in as {user.firstName}
+              </Typography>
+              <Button color="inherit" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button component={Link} to="/login" color="inherit">
+              Login
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>
