@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import Browse from "./pages/Browse";
 import PackageDetail from "./pages/PackageDetail";
 import { Route, Routes } from "react-router-dom";
+import InquiryChat from "./pages/InquiryChat";
 
 function App() {
    useEffect(() => {
@@ -40,6 +41,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/browse" element={<Browse />} />
       <Route path="/packages/:id" element={<PackageDetail />} />
+      <Route path="/inquiries/:id" element={<InquiryChat />} />
     </Routes>
   );
 }

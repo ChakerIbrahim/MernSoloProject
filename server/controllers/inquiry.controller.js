@@ -68,9 +68,26 @@ const updateInquiryStatus = async (req, res) => {
   }
 };
 
+// Import the Message model, alongside the existing Inquiry import at the top
+const Message = require("../models/message.model");
+
+// Handles GET /api/inquiries/:id/messages — full message history for one conversation
+const getMessagesForInquiry = async (req, res) => {
+  try {
+    const messages = await Message.find({ inquiry: req.params.id })
+      .populate("sender", "firstName")
+      .sort({ createdAt: 1 });
+
+    return res.json({ messages });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createInquiry,
   getInquiries,
   getInquiryById,
   updateInquiryStatus,
+  getMessagesForInquiry,
 };

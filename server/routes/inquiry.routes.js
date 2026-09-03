@@ -5,4 +5,5 @@ module.exports = (app) => {
   app.get("/api/inquiries", InquiryController.getInquiries);
   app.get("/api/inquiries/:id", InquiryController.getInquiryById);
   app.put("/api/inquiries/:id", InquiryController.updateInquiryStatus);
+  app.get("/api/inquiries/:id/messages", InquiryController.getMessagesForInquiry);
 };
