@@ -31,9 +31,14 @@ const registerUser = async (req, res) => {
       process.env.SECRET,
     );
 
+    // Convert to a plain object and remove the password hash before sending
+    // it back — the frontend never needs it, and it shouldn't leave the server
+    const userToSend = user.toObject();
+    delete userToSend.password;
+
     // Send the token back as an httpOnly cookie (JavaScript in the browser can't
     // read it, which protects against certain attacks), along with the new user
-    return res.cookie("jwt", token, { httpOnly: true }).json({ user });
+    return res.cookie("jwt", token, { httpOnly: true }).json({ user: userToSend });
   } catch (error) {
     // If validation fails (e.g. passwords didn't match, email missing), this catches it
     return res.status(400).json({ message: error.message });
@@ -50,7 +55,7 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Email does not exist" });
     }
 
-      // bcrypt.compare returns a Promise, so this must be awaited — otherwise
+    // bcrypt.compare returns a Promise, so this must be awaited — otherwise
     // isValid would be the Promise object itself, which is always truthy,
     // and would let anyone log in regardless of the password entered
     const isValid = await bcrypt.compare(req.body.password, user.password);
@@ -64,9 +69,14 @@ const loginUser = async (req, res) => {
       process.env.SECRET,
     );
 
-    return res.cookie("jwt", token, { httpOnly: true }).json({ user });
+    // Convert to a plain object and remove the password hash before sending
+    // it back — the frontend never needs it, and it shouldn't leave the server
+    const userToSend = user.toObject();
+    delete userToSend.password;
+
+    return res.cookie("jwt", token, { httpOnly: true }).json({ user: userToSend });
   } catch (err) {
-        return res.status(400).json({ error: err.message });
+    return res.status(400).json({ message: err.message });
   }
 };
 
@@ -85,7 +95,7 @@ const getUsers = async (req, res) => {
 // req.user already has { email, id } decoded from a valid cookie
 const getCurrentUser = async (req, res) => {
   try {
-      const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
