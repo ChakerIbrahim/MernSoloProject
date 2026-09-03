@@ -28,10 +28,20 @@ function Header() {
             Browse
           </Button>
 
-          {/* While the initial /api/me check is still running, show nothing
-              here rather than briefly flashing "Login" incorrectly */}
           {loading ? null : user ? (
             <>
+              {user.role === "traveler" && (
+                <Button component={Link} to="/dashboard/traveler" color="inherit">
+                  My Inquiries
+                </Button>
+              )}
+
+              {user.role === "agency" && (
+                <Button component={Link} to="/dashboard/agency" color="inherit">
+                  Dashboard
+                </Button>
+              )}
+
               <Typography variant="body2">
                 Logged in as {user.firstName}
               </Typography>

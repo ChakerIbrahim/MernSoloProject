@@ -1,10 +1,21 @@
-// Import the Inquiry model — this is what talks to the inquiries collection
 const Inquiry = require("../models/inquiry.model");
 
 // Handles POST /api/inquiries — a traveler reaches out to an agency about a package
 const createInquiry = async (req, res) => {
   try {
     const inquiry = await Inquiry.create(req.body);
+
+    // Populate enough detail for the agency dashboard to display this
+    // inquiry immediately off the socket event, without a second fetch
+    await inquiry.populate("traveler", "firstName");
+    await inquiry.populate("package", "title destination");
+
+    // Grab the io instance we attached to the app in server.js, and emit
+    // only to the room named after this inquiry's agency ID — so only
+    // that one agency's dashboard (if they're currently connected) sees it
+    const io = req.app.get("io");
+    io.to(inquiry.agency.toString()).emit("new_inquiry", inquiry);
+
     return res.json({ inquiry });
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -18,6 +29,7 @@ const getInquiries = async (req, res) => {
     const filter = {};
     if (req.query.traveler) filter.traveler = req.query.traveler;
     if (req.query.agency) filter.agency = req.query.agency;
+    if (req.query.package) filter.package = req.query.package;
 
     const inquiries = await Inquiry.find(filter)
       .populate("traveler", "firstName")
@@ -30,8 +42,6 @@ const getInquiries = async (req, res) => {
   }
 };
 
-// Handles GET /api/inquiries/:id — one specific inquiry thread, with enough
-// detail on each side (traveler, agency, package) to build a chat screen around
 const getInquiryById = async (req, res) => {
   try {
     const inquiry = await Inquiry.findById(req.params.id)
@@ -49,7 +59,6 @@ const getInquiryById = async (req, res) => {
   }
 };
 
-// Handles PUT /api/inquiries/:id — the agency confirms or declines a request
 const updateInquiryStatus = async (req, res) => {
   try {
     const inquiry = await Inquiry.findByIdAndUpdate(
@@ -68,10 +77,8 @@ const updateInquiryStatus = async (req, res) => {
   }
 };
 
-// Import the Message model, alongside the existing Inquiry import at the top
 const Message = require("../models/message.model");
 
-// Handles GET /api/inquiries/:id/messages — full message history for one conversation
 const getMessagesForInquiry = async (req, res) => {
   try {
     const messages = await Message.find({ inquiry: req.params.id })

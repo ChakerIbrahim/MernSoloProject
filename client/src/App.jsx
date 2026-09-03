@@ -7,13 +7,11 @@ import Browse from "./pages/Browse";
 import PackageDetail from "./pages/PackageDetail";
 import { Route, Routes } from "react-router-dom";
 import InquiryChat from "./pages/InquiryChat";
+import TravelerDashboard from "./pages/TravelerDashboard";
+import AgencyDashboard from "./pages/AgencyDashboard";
 
 function App() {
    useEffect(() => {
-    // If the socket already connected before this effect ran — very likely
-    // on localhost, since the connection can complete almost instantly —
-    // the "connect" event already fired once and won't fire again. Checking
-    // socket.connected directly catches that already-happened case.
     if (socket.connected) {
       console.log("already connected to socket server:", socket.id);
     }
@@ -27,8 +25,6 @@ function App() {
     });
     socket.off("connect");
     socket.off("connect_error");
-    // Cleanup — runs if App ever unmounts, removing this listener so it
-    // doesn't get duplicated if the effect ever re-ran
     return () => {
       socket.off("connect");
     };
@@ -42,6 +38,8 @@ function App() {
       <Route path="/browse" element={<Browse />} />
       <Route path="/packages/:id" element={<PackageDetail />} />
       <Route path="/inquiries/:id" element={<InquiryChat />} />
+      <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
+      <Route path="/dashboard/agency" element={<AgencyDashboard />} />
     </Routes>
   );
 }

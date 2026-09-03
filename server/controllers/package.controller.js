@@ -1,7 +1,5 @@
-// Import the Package model — this is what talks to the packages collection in MongoDB
 const Package = require("../models/package.model");
 
-// Handles POST /api/packages — an agency creates a new package listing
 const createPackage = async (req, res) => {
   try {
     const pkg = await Package.create(req.body);
@@ -14,10 +12,8 @@ const createPackage = async (req, res) => {
 // Handles GET /api/packages — public browsing/search, with optional filters
 const getPackages = async (req, res) => {
   try {
-    // Start with an empty filter — an empty object matches everything in MongoDB
     const filter = {};
 
-    // Only add a destination filter if the frontend actually sent one
     if (req.query.destination) {
       filter.destination = { $regex: req.query.destination, $options: "i" };
     }
@@ -26,7 +22,12 @@ const getPackages = async (req, res) => {
       filter.price = { $lte: Number(req.query.maxPrice) };
     }
 
-    // .find(filter) returns everything matching; populate swaps in agency name/info
+    // NEW: lets the agency dashboard ask for "just my packages" by
+    // passing ?agency=<their own user id>
+    if (req.query.agency) {
+      filter.agency = req.query.agency;
+    }
+
     const packages = await Package.find(filter).populate(
       "agency",
       "firstName agencyName",
@@ -38,7 +39,6 @@ const getPackages = async (req, res) => {
   }
 };
 
-// Handles GET /api/packages/:id — a single package's full detail page
 const getPackageById = async (req, res) => {
   try {
     const pkg = await Package.findById(req.params.id).populate(
@@ -56,7 +56,6 @@ const getPackageById = async (req, res) => {
   }
 };
 
-// Handles PUT /api/packages/:id — an agency edits one of their packages
 const updatePackage = async (req, res) => {
   try {
     const pkg = await Package.findByIdAndUpdate(req.params.id, req.body, {
@@ -74,7 +73,6 @@ const updatePackage = async (req, res) => {
   }
 };
 
-// Handles DELETE /api/packages/:id — removes a package entirely
 const deletePackage = async (req, res) => {
   try {
     const pkg = await Package.findByIdAndDelete(req.params.id);
