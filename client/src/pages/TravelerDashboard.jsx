@@ -1,21 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Box, Container, Typography, Chip } from "@mui/material";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
 
-// Maps each inquiry status to a MUI Chip color, so pending/confirmed/declined
-// are visually distinct at a glance without reading the text
-const statusColors = {
-  pending: "warning",
-  confirmed: "success",
-  declined: "error",
+const statusStyles = {
+  pending: "bg-sand/20 text-sand-dark",
+  confirmed: "bg-emerald-100 text-emerald-700",
+  declined: "bg-red-100 text-red-700",
 };
 
 function TravelerDashboard() {
-  // authLoading tells us whether AuthContext has finished checking the
-  // session cookie yet — we need to wait for that before trusting "user"
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -23,17 +18,13 @@ function TravelerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Don't do anything until AuthContext has resolved who's logged in —
-    // otherwise this runs once with user still null on first render
     if (authLoading) return;
 
-    // Not logged in at all — send them to login
     if (!user) {
       navigate("/login");
       return;
     }
 
-    // Logged in, but as an agency — this dashboard isn't for them
     if (user.role !== "traveler") {
       navigate("/");
       return;
@@ -59,58 +50,43 @@ function TravelerDashboard() {
   return (
     <>
       <Header />
-      <Container sx={{ py: 4 }}>
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          My Inquiries
-        </Typography>
+      <div className="mx-auto max-w-5xl px-6 py-8">
+        <h1 className="mb-6 text-2xl font-bold text-ink">My Inquiries</h1>
 
-        {loading && <Typography>Loading your inquiries...</Typography>}
+        {loading && <p className="text-ink/60">Loading your inquiries...</p>}
 
         {!loading && inquiries.length === 0 && (
-          <Typography>
-            You haven't inquired about any packages yet. Browse packages to
-            get started.
-          </Typography>
+          <p className="text-ink/60">
+            You haven't inquired about any packages yet. Browse packages to get started.
+          </p>
         )}
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <div className="flex flex-col gap-3">
           {inquiries.map((inquiry) => (
-            <Box
+            <div
               key={inquiry._id}
               onClick={() => navigate(`/inquiries/${inquiry._id}`)}
-              sx={{
-                p: 2,
-                border: "1px solid #ddd",
-                borderRadius: 2,
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                "&:hover": { backgroundColor: "#fafafa" },
-              }}
+              className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-line bg-white p-4 hover:border-ocean"
             >
-              <Box>
-                {/* Optional chaining here in case a package was ever deleted
-                    after the inquiry was made — avoids a crash on null */}
-                <Typography variant="subtitle1">
+              <div>
+                <p className="font-medium text-ink">
                   {inquiry.package?.title || "Package no longer available"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+                </p>
+                <p className="text-sm text-ink/60">
                   {inquiry.package?.destination} — {inquiry.agency?.agencyName}
-                </Typography>
-              </Box>
-              <Chip
-                label={
-                  inquiry.status.charAt(0).toUpperCase() +
-                  inquiry.status.slice(1)
-                }
-                color={statusColors[inquiry.status] || "default"}
-                size="small"
-              />
-            </Box>
+                </p>
+              </div>
+              <span
+                className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  statusStyles[inquiry.status] || "bg-line text-ink"
+                }`}
+              >
+                {inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1)}
+              </span>
+            </div>
           ))}
-        </Box>
-      </Container>
+        </div>
+      </div>
     </>
   );
 }

@@ -1,4 +1,3 @@
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -12,51 +11,63 @@ function Header() {
   };
 
   return (
-    <AppBar position="static" color="default" elevation={0}>
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Typography
-          variant="h6"
-          component={Link}
+    <header className="border-b border-line bg-white">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <Link
           to="/"
-          sx={{ textDecoration: "none", color: "inherit", fontWeight: 600 }}
+          className="text-xl font-extrabold tracking-tight text-ocean-dark no-underline"
         >
           SafeTravel
-        </Typography>
+        </Link>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Button component={Link} to="/browse" color="inherit">
+        <nav className="flex items-center gap-6">
+          <Link
+            to="/browse"
+            className="text-sm font-medium text-ink hover:text-ocean-dark"
+          >
             Browse
-          </Button>
+          </Link>
 
           {loading ? null : user ? (
             <>
               {user.role === "traveler" && (
-                <Button component={Link} to="/dashboard/traveler" color="inherit">
-                  My Inquiries
-                </Button>
+                <Link
+                  to="/dashboard/traveler"
+                  className="text-sm font-medium text-ink hover:text-ocean-dark"
+                >
+                  My inquiries
+                </Link>
               )}
 
               {user.role === "agency" && (
-                <Button component={Link} to="/dashboard/agency" color="inherit">
+                <Link
+                  to="/dashboard/agency"
+                  className="text-sm font-medium text-ink hover:text-ocean-dark"
+                >
                   Dashboard
-                </Button>
+                </Link>
               )}
 
-              <Typography variant="body2">
-                Logged in as {user.firstName}
-              </Typography>
-              <Button color="inherit" onClick={handleLogout}>
-                Logout
-              </Button>
+              <span className="text-sm text-ink/60">{user.firstName}</span>
+
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-ink hover:text-ocean-dark"
+              >
+                Log out
+              </button>
             </>
           ) : (
-            <Button component={Link} to="/login" color="inherit">
-              Login
-            </Button>
+            <Link
+              to="/login"
+              className="rounded-md bg-ocean-dark px-4 py-2 text-sm font-semibold text-white hover:bg-ocean"
+            >
+              Log in
+            </Link>
           )}
-        </Box>
-      </Toolbar>
-    </AppBar>
+        </nav>
+      </div>
+    </header>
   );
 }
 

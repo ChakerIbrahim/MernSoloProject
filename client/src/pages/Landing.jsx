@@ -1,33 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardActionArea,
-  CardMedia,
-  CardContent,
-} from "@mui/material";
 import Header from "../components/Header";
+import { getDestinationImage } from "../utils/destinationImages";
 
-// A small hardcoded list for now — real "popular destinations" logic can come later
 const popularDestinations = ["Thailand", "Bali", "Morocco", "Italy"];
 
 function Landing() {
-  // Tracks exactly what the user has typed into the search box
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
-  // Runs when the search form is submitted (Enter key or clicking Search)
   const handleSearch = (e) => {
     e.preventDefault();
     navigate(`/browse?destination=${query}`);
   };
 
-  // Clicking a destination card searches for it directly, skipping typing
   const handleDestinationClick = (destination) => {
     navigate(`/browse?destination=${destination}`);
   };
@@ -36,55 +22,53 @@ function Landing() {
     <>
       <Header />
 
-      <Box sx={{ textAlign: "center", py: 8, px: 2 }}>
-        <Typography variant="h3" gutterBottom>
+      <section className="px-6 py-20 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
           Find your next trip
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-ink/70">
           Compare packages from real travel agencies, all in one place.
-        </Typography>
+        </p>
 
-        <Box
-          component="form"
-          onSubmit={handleSearch}
-          sx={{ display: "flex", gap: 1, maxWidth: 480, mx: "auto" }}
-        >
-          <TextField
-            fullWidth
+        <form onSubmit={handleSearch} className="mx-auto mt-8 flex max-w-md gap-2">
+          <input
+            type="text"
             placeholder="Where do you want to go?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            className="w-full rounded-md border border-line bg-white px-4 py-2.5 text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-ocean"
           />
-          <Button type="submit" variant="contained">
+          <button
+            type="submit"
+            className="whitespace-nowrap rounded-md bg-ocean-dark px-5 py-2.5 font-semibold text-white hover:bg-ocean"
+          >
             Search
-          </Button>
-        </Box>
-      </Box>
+          </button>
+        </form>
+      </section>
 
-      <Container sx={{ pb: 8 }}>
-        <Typography variant="h6" gutterBottom>
-          Popular destinations
-        </Typography>
+      <section className="mx-auto max-w-5xl px-6 pb-20">
+        <h2 className="mb-4 text-lg font-semibold text-ink">Popular destinations</h2>
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-            gap: 2,
-          }}
-        >
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {popularDestinations.map((destination) => (
-            <Card key={destination}>
-              <CardActionArea onClick={() => handleDestinationClick(destination)}>
-                <CardMedia sx={{ height: 100, bgcolor: "grey.200" }} />
-                <CardContent>
-                  <Typography variant="subtitle1">{destination}</Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
+            <button
+              key={destination}
+              onClick={() => handleDestinationClick(destination)}
+              className="group overflow-hidden rounded-lg border border-line bg-white text-left"
+            >
+              <img
+                src={getDestinationImage(destination)}
+                alt={destination}
+                className="h-28 w-full object-cover transition group-hover:opacity-90"
+              />
+              <span className="block px-3 py-2 font-medium text-ink">
+                {destination}
+              </span>
+            </button>
           ))}
-        </Box>
-      </Container>
+        </div>
+      </section>
     </>
   );
 }

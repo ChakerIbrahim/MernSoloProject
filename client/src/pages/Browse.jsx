@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Box, Container, TextField, Button, Typography, Divider } from "@mui/material";
 import Header from "../components/Header";
 import PackageCard from "../components/PackageCard";
+
+// Shared input styling so every text field on this page looks identical
+const inputClass =
+  "w-full rounded-md border border-line bg-white px-4 py-2.5 text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-ocean";
 
 function Browse() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,21 +15,13 @@ function Browse() {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Local input fields, seeded from whatever's already in the URL when the page loads
   const [destination, setDestination] = useState(searchParams.get("destination") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
 
-  // --- New state for the AI search bar ---
-  // What the user typed into the natural-language box
   const [aiQuery, setAiQuery] = useState("");
-  // Separate loading flag just for the AI button, so we can show "Thinking..."
-  // on the button itself without touching the shared "loading" grid message
   const [aiLoading, setAiLoading] = useState(false);
-  // Holds whatever the AI understood from the last query, so we can show
-  // the user feedback like "Searching for: Thailand, under $1000"
   const [interpretedFilters, setInterpretedFilters] = useState(null);
 
-  // Runs on first load, and again every time the URL's filters change
   useEffect(() => {
     const fetchPackages = async () => {
       setLoading(true);
@@ -48,10 +43,8 @@ function Browse() {
     fetchPackages();
   }, [searchParams]);
 
-  // Writing to the URL here is what triggers the useEffect above to re-fetch
   const handleApplyFilters = (e) => {
     e.preventDefault();
-    // Clear any leftover AI feedback text — we're back to manual filtering now
     setInterpretedFilters(null);
     const params = {};
     if (destination) params.destination = destination;
@@ -59,9 +52,6 @@ function Browse() {
     setSearchParams(params);
   };
 
-  // Handles the natural-language search bar. Unlike the manual filters above,
-  // this does NOT touch the URL — it calls our AI endpoint directly and sets
-  // the results straight into state
   const handleAiSearch = async (e) => {
     e.preventDefault();
     if (!aiQuery.trim()) return;
@@ -86,27 +76,28 @@ function Browse() {
     <>
       <Header />
 
-      <Container sx={{ py: 4 }}>
-        {/* AI natural-language search bar */}
-        <Box
-          component="form"
-          onSubmit={handleAiSearch}
-          sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}
-        >
-          <TextField
-            label="Try: beach trip under $1000"
+      <div className="mx-auto max-w-5xl px-6 py-8">
+        {/* AI natural-language search bar — the primary, flagship action on
+            this page, so it gets the solid ocean-dark button */}
+        <form onSubmit={handleAiSearch} className="flex flex-wrap gap-2">
+          <input
+            type="text"
+            placeholder="Try: beach trip under $1000"
             value={aiQuery}
             onChange={(e) => setAiQuery(e.target.value)}
-            sx={{ flexGrow: 1, minWidth: 260 }}
+            className={`${inputClass} min-w-[260px] flex-1`}
           />
-          <Button type="submit" variant="contained" disabled={aiLoading}>
+          <button
+            type="submit"
+            disabled={aiLoading}
+            className="whitespace-nowrap rounded-md bg-ocean-dark px-5 py-2.5 font-semibold text-white hover:bg-ocean disabled:opacity-50"
+          >
             {aiLoading ? "Thinking..." : "AI Search"}
-          </Button>
-        </Box>
+          </button>
+        </form>
 
-        {/* Feedback showing what the AI understood, or that it fell back */}
         {interpretedFilters && (
-          <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
+          <p className="mt-2 text-sm text-ink/60">
             {interpretedFilters.fallback
               ? "AI search unavailable — showing keyword matches instead."
               : `Showing results for: ${
@@ -118,55 +109,54 @@ function Browse() {
                     .filter(Boolean)
                     .join(", ") || "everything"
                 }`}
-          </Typography>
+          </p>
         )}
 
-        <Divider sx={{ mb: 3 }} />
+        <hr className="my-6 border-line" />
 
-        {/* Existing manual filter form, unchanged */}
-        <Box
-          component="form"
-          onSubmit={handleApplyFilters}
-          sx={{ display: "flex", gap: 2, mb: 4, flexWrap: "wrap" }}
-        >
-          <TextField
-            label="Destination"
+        {/* Manual filters — secondary, so an outlined button instead of a
+            solid one, to visually rank it below the AI search above */}
+        <form onSubmit={handleApplyFilters} className="flex flex-wrap gap-2">
+          <input
+            type="text"
+            placeholder="Destination"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
+            className={`${inputClass} sm:w-48`}
           />
-          <TextField
-            label="Max price"
+          <input
             type="number"
+            placeholder="Max price"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
+            className={`${inputClass} sm:w-40`}
           />
-          <Button type="submit" variant="contained">
+          <button
+            type="submit"
+            className="rounded-md border border-line bg-white px-5 py-2.5 font-semibold text-ink hover:border-ocean"
+          >
             Apply
-          </Button>
-        </Box>
+          </button>
+        </form>
 
-        {loading && <Typography>Loading packages...</Typography>}
+        <div className="mt-8">
+          {loading && <p className="text-ink/60">Loading packages...</p>}
 
-        {!loading && packages.length === 0 && (
-          <Typography>No packages match your search.</Typography>
-        )}
+          {!loading && packages.length === 0 && (
+            <p className="text-ink/60">No packages match your search.</p>
+          )}
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 3,
-          }}
-        >
-          {packages.map((pkg) => (
-            <PackageCard
-              key={pkg._id}
-              pkg={pkg}
-              onClick={() => navigate(`/packages/${pkg._id}`)}
-            />
-          ))}
-        </Box>
-      </Container>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {packages.map((pkg) => (
+              <PackageCard
+                key={pkg._id}
+                pkg={pkg}
+                onClick={() => navigate(`/packages/${pkg._id}`)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </>
   );
 }

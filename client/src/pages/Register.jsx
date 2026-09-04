@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Container, Typography } from "@mui/material";
 import Header from "../components/Header";
 import UserForm from "../components/UserForm";
 import { useAuth } from "../context/AuthContext";
@@ -21,7 +20,7 @@ function Register() {
   const handleSubmit = async (e, data) => {
     e.preventDefault();
     try {
-        const response = await axios.post("http://localhost:8000/api/register", data, {
+      const response = await axios.post("http://localhost:8000/api/register", data, {
         withCredentials: true,
       });
       setUser(response.data.user);
@@ -35,32 +34,36 @@ function Register() {
   return (
     <>
       <Header />
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Create an account
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          Already have an account? <Link to="/login">Log in</Link>
-        </Typography>
-        <UserForm
-          handleSubmit={handleSubmit}
-          error={error}
-          firstName={firstName}
-          setFirstName={setFirstName}
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          confirmPassword={confirmPassword}
-          setConfirmPassword={setConfirmPassword}
-          role={role}
-          setRole={setRole}
-          agencyName={agencyName}
-          setAgencyName={setAgencyName}
-          agencyDescription={agencyDescription}
-          setAgencyDescription={setAgencyDescription}
-        />
-      </Container>
+      <div className="flex min-h-[75vh] items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <h1 className="text-2xl font-bold text-ink">Create an account</h1>
+          <p className="mb-6 mt-1 text-sm text-ink/60">
+            Already have an account?{" "}
+            <Link to="/login" className="font-medium text-ocean-dark hover:underline">
+              Log in
+            </Link>
+          </p>
+          <UserForm
+            handleSubmit={handleSubmit}
+            error={error}
+            firstName={firstName}
+            setFirstName={setFirstName}
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            role={role}
+            setRole={setRole}
+            agencyName={agencyName}
+            setAgencyName={setAgencyName}
+            agencyDescription={agencyDescription}
+            setAgencyDescription={setAgencyDescription}
+            submitLabel="Create account"
+          />
+        </div>
+      </div>
     </>
   );
 }

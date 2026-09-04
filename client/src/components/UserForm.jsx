@@ -1,6 +1,3 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
 import InputText from "./Fields/InputText";
 
 function UserForm(props) {
@@ -22,6 +19,9 @@ function UserForm(props) {
     handleSubmit,
     error,
     isLogin = false,
+    // NEW: lets Login/Register each pass their own exact button wording,
+    // instead of both saying the generic, less helpful "Submit"
+    submitLabel = "Submit",
   } = props;
 
   return (
@@ -38,109 +38,107 @@ function UserForm(props) {
           agencyDescription,
         })
       }
+      className="flex flex-col gap-4"
     >
-      {error ? <Typography color="error">{error}</Typography> : null}
+      {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
 
       {isLogin ? null : (
-        <Box sx={{ m: 2 }}>
-          <InputText
-            id="firstName"
-            name="firstName"
-            onChange={(e) => setFirstName(e.target.value)}
-            label="First Name"
-            value={firstName}
-            isError={firstName.length < 2}
-          />
-        </Box>
+        <InputText
+          id="firstName"
+          name="firstName"
+          onChange={(e) => setFirstName(e.target.value)}
+          label="First name"
+          value={firstName}
+          isError={firstName.length < 2}
+        />
       )}
 
-      {/* Role only matters when creating a new account */}
       {isLogin ? null : (
-        <Box sx={{ m: 2, display: "flex", gap: 1 }}>
-          <Button
+        <div className="flex gap-2">
+          <button
             type="button"
-            variant={role === "traveler" ? "contained" : "outlined"}
             onClick={() => setRole("traveler")}
+            className={`flex-1 rounded-md px-4 py-2.5 font-semibold ${
+              role === "traveler"
+                ? "bg-ocean-dark text-white"
+                : "border border-line bg-white text-ink hover:border-ocean"
+            }`}
           >
             I'm a traveler
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant={role === "agency" ? "contained" : "outlined"}
             onClick={() => setRole("agency")}
+            className={`flex-1 rounded-md px-4 py-2.5 font-semibold ${
+              role === "agency"
+                ? "bg-ocean-dark text-white"
+                : "border border-line bg-white text-ink hover:border-ocean"
+            }`}
           >
             I'm an agency
-          </Button>
-        </Box>
+          </button>
+        </div>
       )}
 
-      {/* Agency-only fields, shown only once "agency" is actually selected */}
       {!isLogin && role === "agency" ? (
         <>
-          <Box sx={{ m: 2 }}>
-            <InputText
-              id="agencyName"
-              name="agencyName"
-              onChange={(e) => setAgencyName(e.target.value)}
-              label="Agency name"
-              value={agencyName}
-              isError={agencyName.length < 2}
-            />
-          </Box>
-          <Box sx={{ m: 2 }}>
-            <InputText
-              id="agencyDescription"
-              name="agencyDescription"
-              onChange={(e) => setAgencyDescription(e.target.value)}
-              label="Agency description"
-              value={agencyDescription}
-              isError={agencyDescription.length < 2}
-            />
-          </Box>
+          <InputText
+            id="agencyName"
+            name="agencyName"
+            onChange={(e) => setAgencyName(e.target.value)}
+            label="Agency name"
+            value={agencyName}
+            isError={agencyName.length < 2}
+          />
+          <InputText
+            id="agencyDescription"
+            name="agencyDescription"
+            onChange={(e) => setAgencyDescription(e.target.value)}
+            label="Agency description"
+            value={agencyDescription}
+            isError={agencyDescription.length < 2}
+          />
         </>
       ) : null}
 
-      <Box sx={{ m: 2 }}>
-        <InputText
-          id="email"
-          name="email"
-          type="email"
-          onChange={(e) => setEmail(e.target.value)}
-          label="Email"
-          value={email}
-          isError={email.length < 2 || error}
-        />
-      </Box>
+      <InputText
+        id="email"
+        name="email"
+        type="email"
+        onChange={(e) => setEmail(e.target.value)}
+        label="Email"
+        value={email}
+        isError={email.length < 2 || error}
+      />
 
-      <Box sx={{ m: 2 }}>
-        <InputText
-          id="password"
-          name="password"
-          type="password"
-          onChange={(e) => setPassword(e.target.value)}
-          label="Password"
-          value={password}
-          isError={password.length < 2 || error}
-        />
-      </Box>
+      <InputText
+        id="password"
+        name="password"
+        type="password"
+        onChange={(e) => setPassword(e.target.value)}
+        label="Password"
+        value={password}
+        isError={password.length < 2 || error}
+      />
 
       {isLogin ? null : (
-        <Box sx={{ m: 2 }}>
-          <InputText
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            label="Confirm Password"
-            value={confirmPassword}
-            isError={confirmPassword.length < 2 || error}
-          />
-        </Box>
+        <InputText
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          label="Confirm password"
+          value={confirmPassword}
+          isError={confirmPassword.length < 2 || error}
+        />
       )}
 
-      <Button type="submit" variant="contained" color="success" sx={{ m: 2 }}>
-        Submit
-      </Button>
+      <button
+        type="submit"
+        className="mt-2 rounded-md bg-ocean-dark px-5 py-2.5 font-semibold text-white hover:bg-ocean"
+      >
+        {submitLabel}
+      </button>
     </form>
   );
 }
