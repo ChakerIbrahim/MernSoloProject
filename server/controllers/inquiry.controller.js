@@ -59,17 +59,28 @@ const getInquiryById = async (req, res) => {
   }
 };
 
+// Handles PUT /api/inquiries/:id — the agency confirms or declines a
+// request. Protected by verifyToken, and now also checks that the
+// logged-in user is actually THIS inquiry's agency — same ownership
+// pattern as packages, and same reason: without this, anyone could hit
+// this route directly and flip any inquiry's status
 const updateInquiryStatus = async (req, res) => {
   try {
+    const existingInquiry = await Inquiry.findById(req.params.id);
+
+    if (!existingInquiry) {
+      return res.status(404).json({ message: "Inquiry not found" });
+    }
+
+    if (existingInquiry.agency.toString() !== req.user.id) {
+      return res.status(403).json({ message: "You don't own this inquiry" });
+    }
+
     const inquiry = await Inquiry.findByIdAndUpdate(
       req.params.id,
       { status: req.body.status },
       { new: true, runValidators: true },
     );
-
-    if (!inquiry) {
-      return res.status(404).json({ message: "Inquiry not found" });
-    }
 
     return res.json({ inquiry });
   } catch (error) {

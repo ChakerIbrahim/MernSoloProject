@@ -84,6 +84,7 @@ function AgencyDashboard() {
       const response = await axios.put(
         `http://localhost:8000/api/inquiries/${inquiryId}`,
         { status },
+        { withCredentials: true },
       );
       setInquiries((prev) =>
         prev.map((inq) =>

@@ -5,6 +5,11 @@ import Header from "../components/Header";
 import PackageCard from "../components/PackageCard";
 import StarRating from "../components/StarRating";
 
+// Same fixed list as PackageDetail — kept short and specific rather than
+// free-text, so there's no way to mistype a language into something the
+// AI can't parse during a live demo
+const LANGUAGES = ["Spanish", "French", "Arabic", "German", "Turkish", "Chinese (Simplified)"];
+
 function AgencyProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,6 +18,12 @@ function AgencyProfile() {
   const [packages, setPackages] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // --- New state for description translation, same pattern as PackageDetail ---
+  const [targetLanguage, setTargetLanguage] = useState("Spanish");
+  const [translatedDescription, setTranslatedDescription] = useState(null);
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,12 +48,26 @@ function AgencyProfile() {
     fetchData();
   }, [id]);
 
-  // Computed on the frontend from whatever reviews came back — no need for
-  // a separate backend aggregation endpoint for something this simple
   const averageRating =
     reviews.length > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : null;
+
+  const handleTranslate = async () => {
+    setTranslating(true);
+    setTranslateError("");
+    try {
+      const response = await axios.post("http://localhost:8000/api/ai/translate", {
+        text: agency.agencyDescription,
+        targetLanguage,
+      });
+      setTranslatedDescription(response.data.translatedText);
+    } catch (error) {
+      setTranslateError("Translation unavailable right now — showing original.");
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -97,7 +122,46 @@ function AgencyProfile() {
         </div>
 
         {agency.agencyDescription && (
-          <p className="mb-8 max-w-2xl text-ink">{agency.agencyDescription}</p>
+          <div className="mb-8 max-w-2xl">
+            <p className="text-ink">{translatedDescription || agency.agencyDescription}</p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <select
+                value={targetLanguage}
+                onChange={(e) => {
+                  setTargetLanguage(e.target.value);
+                  // Clear any existing translation so switching languages
+                  // never leaves text on screen mislabeled as the new choice
+                  setTranslatedDescription(null);
+                }}
+                className="rounded-md border border-line bg-white px-2 py-1 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ocean"
+              >
+                {LANGUAGES.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleTranslate}
+                disabled={translating}
+                className="rounded-md border border-line bg-white px-3 py-1 text-sm font-semibold text-ink hover:border-ocean disabled:opacity-50"
+              >
+                {translating ? "Translating..." : "Translate"}
+              </button>
+              {translatedDescription && (
+                <button
+                  onClick={() => setTranslatedDescription(null)}
+                  className="text-sm font-medium text-ocean-dark hover:underline"
+                >
+                  Show original
+                </button>
+              )}
+            </div>
+            {translateError && (
+              <p className="mt-1 text-sm text-red-600">{translateError}</p>
+            )}
+          </div>
         )}
 
         <h2 className="mb-4 text-lg font-semibold text-ink">
