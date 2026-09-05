@@ -114,12 +114,36 @@ const logoutUser = (req, res) => {
   return res.json({ message: "Logged out" });
 };
 
-// Export all three functions together as one object, matching his pattern —
-// this is what user.routes.js will import and attach to actual URLs
+// Handles GET /api/agencies/:id — a PUBLIC profile page, no login required.
+// Unlike getCurrentUser (which blacklists just the password), this
+// whitelists exactly the fields allowed to be public, since literally
+// anyone can hit this route
+const getAgencyById = async (req, res) => {
+  try {
+    // The role: "agency" filter matters here — it stops someone from
+    // passing a TRAVELER's user ID into this URL and having it treated
+    // as a valid agency profile. If the ID belongs to a traveler (or
+    // doesn't exist at all), this correctly returns null → 404
+    const agency = await User.findOne({ _id: req.params.id, role: "agency" }).select(
+      "firstName agencyName agencyDescription agencyLogo",
+    );
+
+    if (!agency) {
+      return res.status(404).json({ message: "Agency not found" });
+    }
+
+    return res.json({ agency });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUsers,
   getCurrentUser,
   logoutUser,
+  getAgencyById,
 };
+

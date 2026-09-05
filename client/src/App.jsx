@@ -9,6 +9,7 @@ import { Route, Routes } from "react-router-dom";
 import InquiryChat from "./pages/InquiryChat";
 import TravelerDashboard from "./pages/TravelerDashboard";
 import AgencyDashboard from "./pages/AgencyDashboard";
+import AgencyProfile from "./pages/AgencyProfile";
 
 function App() {
    useEffect(() => {
@@ -40,6 +41,7 @@ function App() {
       <Route path="/inquiries/:id" element={<InquiryChat />} />
       <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
       <Route path="/dashboard/agency" element={<AgencyDashboard />} />
+      <Route path="/agencies/:id" element={<AgencyProfile />} />
     </Routes>
   );
 }
