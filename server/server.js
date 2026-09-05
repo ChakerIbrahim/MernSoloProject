@@ -6,6 +6,8 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const path = require("path");
+const fs = require("fs");
 
 require("./config/mongoose.config");
 
@@ -16,14 +18,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(cookieParser());
 
+// Create the uploads folder automatically if it doesn't exist yet — this
+// means a fresh git clone on a new machine works immediately, with no
+// manual folder setup needed
+const uploadsPath = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath);
+}
+// Serves everything in /uploads at http://localhost:8000/uploads/<filename>,
+// so an uploaded photo's path (saved in the database) becomes a real,
+// loadable image URL in the browser
+app.use("/uploads", express.static(uploadsPath));
+
 const PORT = process.env.PORT;
 
-// Wrap the Express app in a plain HTTP server, and attach Socket.IO to it.
-// This is moved up here, BEFORE the routes are required below, so that
-// app.set("io", io) runs first. That's what lets any controller — like
-// inquiry.controller.js — reach this same "io" object later via
-// req.app.get("io"), even though the controller lives in a totally
-// separate file with no direct import of server.js
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -33,21 +41,14 @@ const io = new Server(server, {
 });
 app.set("io", io);
 
-// Load the user routes, registering /api/register, /api/login, and /api/users
 require("./routes/user.routes")(app);
-
-// Load the package routes, registering full CRUD + search on /api/packages
 require("./routes/package.routes")(app);
-
 require("./routes/inquiry.routes")(app);
-
 require("./routes/ai.routes")(app);
+require("./routes/review.routes")(app);
 
-// Import the Message model so we can save chat messages to the database
 const Message = require("./models/message.model");
 
-// Fires once, automatically, every time a browser successfully connects.
-// "socket" here represents that one specific connected client
 io.on("connection", (socket) => {
   console.log("a user connected:", socket.id);
 
@@ -55,10 +56,6 @@ io.on("connection", (socket) => {
     socket.join(inquiryId);
   });
 
-  // NEW: the agency dashboard calls this once, right after connecting, so
-  // this socket joins a private room named after that agency's own user
-  // ID. That's how we can later send a notification to ONLY that agency
-  // instead of broadcasting it to every connected client
   socket.on("join_agency", (agencyId) => {
     socket.join(agencyId);
   });

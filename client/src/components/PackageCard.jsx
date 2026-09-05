@@ -1,18 +1,19 @@
 import { getDestinationImage } from "../utils/destinationImages";
 
-// pkg is a full package object from the API. onClick is passed in by whichever
-// page uses this card, so PackageCard doesn't need to know about routing itself
 function PackageCard({ pkg, onClick }) {
+  // Prefer a real uploaded photo if the agency added one; otherwise fall
+  // back to the destination-matched stock photo, exactly like before
+  const imageSrc =
+    pkg.images && pkg.images.length > 0
+      ? `http://localhost:8000${pkg.images[0]}`
+      : getDestinationImage(pkg.destination);
+
   return (
     <button
       onClick={onClick}
       className="group flex flex-col overflow-hidden rounded-lg border border-line bg-white text-left transition hover:border-ocean"
     >
-      <img
-        src={getDestinationImage(pkg.destination)}
-        alt={pkg.destination}
-        className="h-40 w-full object-cover"
-      />
+      <img src={imageSrc} alt={pkg.destination} className="h-40 w-full object-cover" />
       <div className="flex flex-1 flex-col gap-1 p-4">
         <h3 className="font-semibold text-ink">{pkg.title}</h3>
         <p className="text-sm text-ink/60">
