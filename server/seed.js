@@ -1,23 +1,26 @@
-// Load .env so this script can read MONGOOSE_URI on its own
 require("dotenv").config();
 
 const mongoose = require("mongoose");
 
-// Requiring this runs the connection logic immediately, same as server.js does
 require("./config/mongoose.config");
 
 const User = require("./models/user.model");
 const Package = require("./models/package.model");
+// NEW: needed so we can clear these out too on every reseed
+const Inquiry = require("./models/inquiry.model");
+const Message = require("./models/message.model");
 
 const seedDatabase = async () => {
   try {
-    // Clear existing data so running this script twice doesn't create duplicates
+    // Clear everything so running this script twice never leaves stale,
+    // orphaned data behind — Inquiries/Messages reference User and Package
+    // IDs, which change every time this script runs, so old inquiries would
+    // otherwise point at documents that no longer exist
     await User.deleteMany({});
     await Package.deleteMany({});
+    await Inquiry.deleteMany({});
+    await Message.deleteMany({});
 
-    // Create three agencies. Passing an array to User.create() creates all
-    // three at once and returns an array of the created documents, in order —
-    // each one still goes through the schema's password hashing hook
     const agencies = await User.create([
       {
         firstName: "Amara",
@@ -48,7 +51,6 @@ const seedDatabase = async () => {
       },
     ]);
 
-    // One traveler account too — useful for testing chat/inquiries later
     await User.create({
       firstName: "Sara",
       email: "sara@traveler.com",
@@ -57,8 +59,6 @@ const seedDatabase = async () => {
       role: "traveler",
     });
 
-    // Now create packages. agencies[0], [1], [2] refer back to the three
-    // agencies just created above, in the same order they were listed
     await Package.create([
       {
         agency: agencies[0]._id,
@@ -83,6 +83,17 @@ const seedDatabase = async () => {
         tags: ["beach", "relaxation", "honeymoon"],
       },
       {
+        agency: agencies[0]._id,
+        title: "Santorini Escape",
+        destination: "Greece",
+        price: 1350,
+        durationDays: 6,
+        includes: ["Flights", "Hotel", "Sunset cruise", "Breakfast"],
+        description: "Whitewashed cliffs, blue domes, and caldera views.",
+        spotsAvailable: 7,
+        tags: ["beach", "honeymoon", "romantic", "luxury"],
+      },
+      {
         agency: agencies[1]._id,
         title: "Atlas Mountains Trek",
         destination: "Morocco",
@@ -103,6 +114,17 @@ const seedDatabase = async () => {
         description: "Alpine trails with some of the best views in Europe.",
         spotsAvailable: 6,
         tags: ["adventure", "hiking", "luxury"],
+      },
+      {
+        agency: agencies[1]._id,
+        title: "Machu Picchu Trek",
+        destination: "Peru",
+        price: 1100,
+        durationDays: 8,
+        includes: ["Guide", "Permits", "Camping gear", "Some meals"],
+        description: "A multi-day trek through the Andes to Machu Picchu.",
+        spotsAvailable: 6,
+        tags: ["adventure", "hiking"],
       },
       {
         agency: agencies[2]._id,
@@ -126,13 +148,23 @@ const seedDatabase = async () => {
         spotsAvailable: 9,
         tags: ["culture", "city", "romantic"],
       },
+      {
+        agency: agencies[2]._id,
+        title: "Istanbul & Cappadocia",
+        destination: "Turkey",
+        price: 710,
+        durationDays: 6,
+        includes: ["Flights", "Hotel", "Hot air balloon ride", "Breakfast"],
+        description: "Grand bazaars, mosques, and sunrise over Cappadocia.",
+        spotsAvailable: 11,
+        tags: ["culture", "city", "budget"],
+      },
     ]);
 
     console.log("Database seeded successfully");
   } catch (error) {
     console.log("Error seeding database:", error.message);
   } finally {
-    // Close the connection so the script actually exits instead of hanging open
     mongoose.connection.close();
   }
 };
