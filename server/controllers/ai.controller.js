@@ -107,4 +107,42 @@ Only include tags that clearly match the query's intent. If nothing matches a fi
   }
 };
 
-module.exports = { aiSearch };
+// Handles POST /api/ai/translate — translates a package description into a
+// target language, using the same OpenRouter model as AI search. Unlike
+// search, there's no keyword-style fallback for translation — if the AI
+// call fails, we return a clear error instead of faking a translation
+const translateText = async (req, res) => {
+  try {
+    const { text, targetLanguage } = req.body;
+
+    if (!text || !targetLanguage) {
+      return res.status(400).json({ message: "text and targetLanguage are required" });
+    }
+
+    const prompt = `Translate the following text into ${targetLanguage}. Respond with ONLY the translated text — no quotes, no explanation, nothing else.
+
+Text: "${text}"`;
+
+    const aiResponse = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "dots-studio/dots-3-note-preview:free",
+        messages: [{ role: "user", content: prompt }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        },
+      },
+    );
+
+    const translatedText = aiResponse.data.choices[0].message.content.trim();
+
+    return res.json({ translatedText });
+  } catch (error) {
+    console.log("Translation error:", error.response?.data || error.message);
+    return res.status(500).json({ message: "Translation unavailable right now" });
+  }
+};
+
+module.exports = { aiSearch, translateText };
